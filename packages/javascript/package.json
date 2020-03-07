@@ -6,13 +6,16 @@
   "module": "dist/index.es.js",
   "browser": "dist/index.bundle.js",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "test": "tsdx test"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^25.1.4",
     "rollup": "^2.0.2",
     "rollup-plugin-typescript2": "^0.26.0",
+    "tsdx": "^0.12.3",
     "typescript": "^3.8.3"
   },
   "dependencies": {
