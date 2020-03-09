@@ -11,31 +11,31 @@ import Memory from './memory'
 
                 store.mutation({
                     merge: {
-                        dogs: {
-                            rex: "husky"
+                        animals: {
+                            shark: "hammerhead"
                         }
                     },
                     delete: {}
                 })
-                expect(store.query({})).toEqual({ dogs: { rex: "husky" } })
+                expect(store.query({})).toEqual({ animals: { shark: "hammerhead" } })
 
                 store.mutation({
                     delete: {
-                        dogs: {
-                            rex: 1
+                        animals: {
+                            shark: 1
                         }
                     },
                     merge: {}
                 })
-                expect(store.query({})).toEqual({ dogs: {} })
+                expect(store.query({})).toEqual({ animals: {} })
 
                 store.mutation({
-                    delete: { dogs: {} },
-                    merge: { dogs: { spike: "bulldog", rex: "husky" } }
+                    delete: { animals: {} },
+                    merge: { animals: { fish: "barracuda", shark: "hammerhead" } }
                 })
-                expect(store.query({})).toEqual({ dogs: { spike: "bulldog", rex: "husky" } })
-                expect(store.query({ dogs: { rex: {} } })).toEqual({ dogs: { rex: "husky" } })
-                expect(store.query({ dogs: { milo: { breed: {} } } })).toEqual({ dogs: { milo: { breed: undefined } } })
+                expect(store.query({})).toEqual({ animals: { fish: "barracuda", shark: "hammerhead" } })
+                expect(store.query({ animals: { shark: {} } })).toEqual({ animals: { shark: "hammerhead" } })
+                expect(store.query({ animals: { stingray: { climate: {} } } })).toEqual({ animals: { stingray: { climate: undefined } } })
             })
 
         })
