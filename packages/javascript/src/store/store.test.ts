@@ -11,31 +11,31 @@ import Memory from './memory'
 
                 store.mutation({
                     merge: {
-                        a: {
-                            b: 1
+                        animals: {
+                            shark: "hammerhead"
                         }
                     },
                     delete: {}
                 })
-                expect(store.query({})).toEqual({ a: { b: 1 } })
+                expect(store.query({})).toEqual({ animals: { shark: "hammerhead" } })
 
                 store.mutation({
                     delete: {
-                        a: {
-                            b: 1
+                        animals: {
+                            shark: 1
                         }
                     },
                     merge: {}
                 })
-                expect(store.query({})).toEqual({ a: {} })
+                expect(store.query({})).toEqual({ animals: {} })
 
                 store.mutation({
-                    delete: { a: {} },
-                    merge: { a: { c: 1, b: 2 } }
+                    delete: { animals: {} },
+                    merge: { animals: { fish: "barracuda", shark: "hammerhead" } }
                 })
-                expect(store.query({})).toEqual({ a: { c: 1, b: 2 } })
-                expect(store.query({ a: { b: {} } })).toEqual({ a: { b: 2 } })
-                expect(store.query({ a: { e: { f: {} } } })).toEqual({ a: { e: { f: undefined } } })
+                expect(store.query({})).toEqual({ animals: { fish: "barracuda", shark: "hammerhead" } })
+                expect(store.query({ animals: { shark: {} } })).toEqual({ animals: { shark: "hammerhead" } })
+                expect(store.query({ animals: { stingray: { climate: {} } } })).toEqual({ animals: { stingray: { climate: undefined } } })
             })
 
         })
