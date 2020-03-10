@@ -37,9 +37,14 @@ import Memory from './memory'
                 expect(store.query({ animals: { shark: {} } })).toEqual({ animals: { shark: "hammerhead" } })
                 expect(store.query({ animals: { stingray: { climate: {} } } })).toEqual({ animals: { stingray: { climate: undefined } } })
 
-                expect(store.query_path('animals', 'shark')).toEqual('hammerhead')
-                expect(store.query_keys('animals')).toEqual(['fish', 'shark'])
+                expect(store.query_path(['animals', 'shark'])).toEqual('hammerhead')
+                expect(store.query_keys(['animals'])).toEqual(['fish', 'shark'])
+                store.merge(['animals', 'whale'], 'orca')
+                expect(store.query_path(['animals', 'whale'])).toEqual('orca')
+                store.delete(['animals', 'whale'])
+                expect(store.query_path(['animals', 'whale'])).toEqual(undefined)
             })
 
         })
+
     })
