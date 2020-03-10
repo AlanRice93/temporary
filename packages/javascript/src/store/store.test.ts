@@ -36,6 +36,9 @@ import Memory from './memory'
                 expect(store.query({})).toEqual({ animals: { fish: "barracuda", shark: "hammerhead" } })
                 expect(store.query({ animals: { shark: {} } })).toEqual({ animals: { shark: "hammerhead" } })
                 expect(store.query({ animals: { stingray: { climate: {} } } })).toEqual({ animals: { stingray: { climate: undefined } } })
+
+                expect(store.query_path('animals', 'shark')).toEqual('hammerhead')
+                expect(store.query_keys('animals')).toEqual(['fish', 'shark'])
             })
 
         })

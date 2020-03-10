@@ -1,5 +1,4 @@
 import Base from './base'
-
 export default class Memory extends Base {
     private state: { [key: string]: any }
 
@@ -7,20 +6,20 @@ export default class Memory extends Base {
         super()
     }
 
-    init() {
+    async init() {
         this.state = {}
     }
 
-    mutation(mut: Mutation) {
+    mutation(mut: Riptide.Mutation) {
         Memory.delete(this.state, mut.delete)
         Memory.merge(this.state, mut.merge)
     }
 
-    query(query: Query) {
+    query(query: Riptide.Query) {
         return Memory.query(this.state, query)
     }
 
-    private static query(state: { [key: string]: any }, input: Query) {
+    private static query(state: { [key: string]: any }, input: Riptide.Query) {
         const result = {} as { [key: string]: any }
         let found = false
         for (let key of Object.keys(input)) {
@@ -28,18 +27,14 @@ export default class Memory extends Base {
             if (value instanceof Object) {
                 found = true
                 const existing = state && state[key]
-                // if (!existing) {
-                //     result[key] = null
-                //     continue
-                // }
-                result[key] = Memory.query(existing, value as Query)
+                result[key] = Memory.query(existing, value as Riptide.Query)
             }
         }
         if (!found) return state
         return result
     }
 
-    private static delete(state: { [key: string]: any }, input: Mutation['delete']) {
+    private static delete(state: { [key: string]: any }, input: Riptide.Mutation['delete']) {
         for (let key of Object.keys(input)) {
             const value = input[key]
 
@@ -54,7 +49,7 @@ export default class Memory extends Base {
         }
     }
 
-    private static merge(state: { [key: string]: any }, input: Mutation['merge']) {
+    private static merge(state: { [key: string]: any }, input: Riptide.Mutation['merge']) {
         for (let key of Object.keys(input)) {
             const value = input[key]
 
