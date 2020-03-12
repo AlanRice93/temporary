@@ -13,6 +13,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^25.1.4",
+    "husky": "^4.2.3",
     "pre-commit": "^1.2.2",
     "rollup": "^2.0.2",
     "rollup-plugin-typescript2": "^0.26.0",
@@ -23,8 +24,9 @@
     "@ironbay/dynamic": "^1.0.10",
     "universal-websocket-client": "^1.0.2"
   },
-  "pre-commit": [
-    "test",
-    "build"
-  ]
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm build; git add dist"
+    }
+  }
 }
