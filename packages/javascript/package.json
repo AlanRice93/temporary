@@ -13,12 +13,18 @@
   "license": "ISC",
   "devDependencies": {
     "@types/jest": "^25.1.4",
+    "pre-commit": "^1.2.2",
     "rollup": "^2.0.2",
     "rollup-plugin-typescript2": "^0.26.0",
     "tsdx": "^0.12.3",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@ironbay/dynamic": "^1.0.10"
-  }
+    "@ironbay/dynamic": "^1.0.10",
+    "universal-websocket-client": "^1.0.2"
+  },
+  "pre-commit": [
+    "test",
+    "build"
+  ]
 }

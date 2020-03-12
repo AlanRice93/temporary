@@ -5,11 +5,10 @@ import Memory from './memory'
 ]
     .map(mod => {
         describe(mod.name, () => {
-            it('implementation', () => {
+            it('implementation', async () => {
                 const store = new mod()
-                store.init()
 
-                store.mutation({
+                await store.mutation({
                     merge: {
                         animals: {
                             shark: "hammerhead"
@@ -19,7 +18,7 @@ import Memory from './memory'
                 })
                 expect(store.query({})).toEqual({ animals: { shark: "hammerhead" } })
 
-                store.mutation({
+                await store.mutation({
                     delete: {
                         animals: {
                             shark: 1
@@ -29,7 +28,7 @@ import Memory from './memory'
                 })
                 expect(store.query({})).toEqual({ animals: {} })
 
-                store.mutation({
+                await store.mutation({
                     delete: { animals: {} },
                     merge: { animals: { fish: "barracuda", shark: "hammerhead" } }
                 })
@@ -39,9 +38,9 @@ import Memory from './memory'
 
                 expect(store.query_path(['animals', 'shark'])).toEqual('hammerhead')
                 expect(store.query_keys(['animals'])).toEqual(['fish', 'shark'])
-                store.merge(['animals', 'whale'], 'orca')
+                await store.merge(['animals', 'whale'], 'orca')
                 expect(store.query_path(['animals', 'whale'])).toEqual('orca')
-                store.delete(['animals', 'whale'])
+                await store.delete(['animals', 'whale'])
                 expect(store.query_path(['animals', 'whale'])).toEqual(undefined)
             })
 

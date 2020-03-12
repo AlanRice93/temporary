@@ -1,6 +1,13 @@
 import Base from './base';
-export default abstract class Memory extends Base {
+export default class Memory extends Base {
     private state;
-    init(): void;
-    mutation(mut: Mutation): void;
+    constructor();
+    init(): Promise<void>;
+    mutation(mut: Riptide.Mutation): void;
+    query(query: Riptide.Query): {
+        [key: string]: any;
+    };
+    private static query;
+    private static delete;
+    private static merge;
 }

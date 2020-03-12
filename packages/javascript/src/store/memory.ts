@@ -1,21 +1,13 @@
-import Base from './base'
-export default class Memory extends Base {
-    private state: { [key: string]: any }
+import Local from './local'
+export default class Memory extends Local {
+    private state: { [key: string]: any } = {}
 
-    constructor() {
-        super()
-    }
-
-    async init() {
-        this.state = {}
-    }
-
-    mutation(mut: Riptide.Mutation) {
+    mutation_raw(mut: Riptide.Mutation) {
         Memory.delete(this.state, mut.delete)
         Memory.merge(this.state, mut.merge)
     }
 
-    query(query: Riptide.Query) {
+    query_raw(query: Riptide.Query) {
         return Memory.query(this.state, query)
     }
 

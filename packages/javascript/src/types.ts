@@ -6,4 +6,21 @@ declare namespace Riptide {
 
     type Query = { [key: string]: Query | { min?: string, max?: string, limit?: string } }
 
+    interface Format {
+        encode(input: any): string
+        decode<T>(input: any): T
+    }
+
+    interface Transport {
+        write(data: string): void
+        handle_data(cb: (data: string) => void): void
+        handle_status(cb: (status: string) => void): void
+    }
+
+    interface Message {
+        key?: number
+        action?: string
+        body?: any
+        type?: 'call' | 'cast' | 'reply'
+    }
 }
