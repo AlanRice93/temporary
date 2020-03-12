@@ -26,7 +26,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm build; git add dist"
+      "pre-commit": "npm run build; git add dist"
     }
   }
 }
