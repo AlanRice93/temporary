@@ -265,19 +265,16 @@ function sleep (time) {
 class Base {
     constructor() {
         this.dispatcher_data = new Dispatcher();
-        this.dispatcher_status = new Dispatcher();
     }
-    handle_data(cb) {
+    onData(cb) {
         this.dispatcher_data.add(cb);
-    }
-    handle_status(cb) {
-        this.dispatcher_status.add(cb);
     }
 }
 class WS extends Base {
     constructor() {
         super(...arguments);
         this.attempts = -1;
+        this.onStatus = new Dispatcher();
     }
     write(data) {
         if (!this.socket || this.socket.readyState !== 1)
@@ -291,7 +288,7 @@ class WS extends Base {
             this.socket = new WebSocket(url);
             this.socket.onopen = () => {
                 this.attempts = 0;
-                this.dispatcher_status.trigger('ready');
+                this.onStatus.trigger('ready');
             };
             this.socket.onclose = () => {
                 this.cleanup();
@@ -314,7 +311,7 @@ class WS extends Base {
         this.cleanup();
     }
     cleanup() {
-        this.dispatcher_status.trigger('disconnected');
+        this.onStatus.trigger('disconnected');
         this.socket = undefined;
     }
 }

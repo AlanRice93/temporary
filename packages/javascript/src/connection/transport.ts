@@ -5,20 +5,15 @@ import Dispatcher from '../dispatcher'
 export abstract class Base implements Riptide.Transport {
     abstract write(data: string): void
     protected dispatcher_data = new Dispatcher<string>()
-    protected dispatcher_status = new Dispatcher<string>()
-
-    handle_data(cb: (data: string) => void) {
+    onData(cb: (data: string) => void) {
         this.dispatcher_data.add(cb)
-    }
-
-    handle_status(cb: (status: string) => void) {
-        this.dispatcher_status.add(cb)
     }
 }
 
 export class WS extends Base {
     public attempts = -1
     private socket: WebSocket;
+    public readonly onStatus = new Dispatcher<string>()
 
     write(data: string) {
         if (!this.socket || this.socket.readyState !== 1) throw 'Socket unready'
@@ -31,7 +26,7 @@ export class WS extends Base {
         this.socket = new WebSocket(url)
         this.socket.onopen = () => {
             this.attempts = 0
-            this.dispatcher_status.trigger('ready')
+            this.onStatus.trigger('ready')
         }
 
         this.socket.onclose = () => {
@@ -58,7 +53,7 @@ export class WS extends Base {
 
 
     private cleanup() {
-        this.dispatcher_status.trigger('disconnected')
+        this.onStatus.trigger('disconnected')
         this.socket = undefined
     }
 }

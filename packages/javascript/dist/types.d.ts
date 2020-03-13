@@ -20,8 +20,7 @@ declare namespace Riptide {
     }
     interface Transport {
         write(data: string): void;
-        handle_data(cb: (data: string) => void): void;
-        handle_status(cb: (status: string) => void): void;
+        onData(cb: (data: string) => void): void;
     }
     interface Message {
         key?: number;
