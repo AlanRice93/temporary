@@ -9,6 +9,7 @@ defmodule Riptide.Application do
     children = [
       # Starts a worker by calling: Riptide.Worker.start_link(arg)
       # {Riptide.Worker, arg}
+      {Riptide.Websocket.Server, %{}}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

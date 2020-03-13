@@ -9,7 +9,7 @@ describe('riptide', () => {
             await session.merge(['conn', 'session'], status)
             expect(session.query_path(['conn', 'session'])).toEqual('ready')
         })
-        await conn.transport.connect('wss://localhost:12000')
+        await conn.transport.connect('ws://localhost:12000/socket')
 
         const remote = new Riptide.Store.Remote(conn)
         local.sync(remote)

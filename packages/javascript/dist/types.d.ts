@@ -27,6 +27,6 @@ declare namespace Riptide {
         key?: number;
         action?: string;
         body?: any;
-        type?: 'call' | 'cast' | 'reply';
+        type?: 'call' | 'cast' | 'reply' | 'error';
     }
 }

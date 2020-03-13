@@ -394,7 +394,7 @@ class Client {
     handle_data(data) {
         const msg = this.format.decode(data);
         const match = this.pending.get(msg.key);
-        switch (msg.action) {
+        switch (msg.type) {
             case 'reply':
                 match.resolve(msg.body);
                 this.pending.delete(msg.key);

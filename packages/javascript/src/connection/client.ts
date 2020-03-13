@@ -49,7 +49,7 @@ export default class Client<T extends Riptide.Transport, F extends Riptide.Forma
     private handle_data(data: string) {
         const msg = this.format.decode<Riptide.Message>(data)
         const match = this.pending.get(msg.key)
-        switch (msg.action) {
+        switch (msg.type) {
             case 'reply':
                 match.resolve(msg.body)
                 this.pending.delete(msg.key)
