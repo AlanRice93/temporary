@@ -43,7 +43,7 @@ defmodule Riptide.Processor do
             {:reply, reply(key, value, state), %{state | data: next}}
 
           nil ->
-            {:reply, error(key, %{error: :not_implemented, data: action}, state), state}
+            {:reply, error(key, [:not_implemented, action], state), state}
         end
 
       _ ->

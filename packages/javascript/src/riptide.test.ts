@@ -5,7 +5,7 @@ describe('riptide', () => {
         const session = new Riptide.Store.Memory()
 
         const conn = Riptide.Connection.create()
-        conn.transport.handle_status(async status => {
+        conn.transport.onStatus.add(async status => {
             await session.merge(['conn', 'session'], status)
             expect(session.query_path(['conn', 'session'])).toEqual('ready')
         })
