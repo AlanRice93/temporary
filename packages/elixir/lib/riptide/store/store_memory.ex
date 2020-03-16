@@ -14,10 +14,9 @@ defmodule Riptide.Store.Memory do
     :ok
   end
 
-  def mutation(mut, _opts) do
-    mut.delete
-    |> Dynamic.flatten()
-    |> Enum.each(fn path ->
+  def mutation(merges, deletes, _opts) do
+    deletes
+    |> Enum.each(fn {path, _} ->
       {last, rest} = List.pop_at(path, -1)
       {min, max} = Riptide.Store.Prefix.range(last, %{})
       min = rest ++ min
@@ -30,8 +29,7 @@ defmodule Riptide.Store.Memory do
 
     :ets.insert(
       @table,
-      mut.merge
-      |> Dynamic.flatten()
+      merges
       |> Stream.map(fn {path, value} -> {path, Jason.encode!(value)} end)
       |> Enum.to_list()
     )

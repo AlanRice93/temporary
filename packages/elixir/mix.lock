@@ -1,8 +1,11 @@
 %{
+  "bridge_lmdb": {:git, "https://github.com/ironbay/bridge_lmdb.git", "8a1ea3f3dea62f63737d2c3dc5bdb104111d6e77", []},
   "brine": {:hex, :brine, "0.2.2", "ab10b381f601794ca4f330da41ed0eb91d5dac5e04ea419f3b5ffbcfb9e484f8", [:mix], [{:dynamic, "~> 0.1.0", [hex: :dynamic, repo: "hexpm", optional: false]}], "hexpm"},
   "cowboy": {:hex, :cowboy, "2.7.0", "91ed100138a764355f43316b1d23d7ff6bdb0de4ea618cb5d8677c93a7a2f115", [:rebar3], [{:cowlib, "~> 2.8.0", [hex: :cowlib, repo: "hexpm", optional: false]}, {:ranch, "~> 1.7.1", [hex: :ranch, repo: "hexpm", optional: false]}], "hexpm"},
   "cowlib": {:hex, :cowlib, "2.8.0", "fd0ff1787db84ac415b8211573e9a30a3ebe71b5cbff7f720089972b2319c8a4", [:rebar3], [], "hexpm"},
   "dynamic": {:hex, :dynamic, "0.1.2", "42b8d36df6c31c9f239c66cca19baab12598cfaf6451e8f8c2a519acfc55ed71", [:mix], [], "hexpm"},
   "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
   "ranch": {:hex, :ranch, "1.7.1", "6b1fab51b49196860b733a49c07604465a47bdb78aa10c1c16a3d199f7f8c881", [:rebar3], [], "hexpm"},
+  "rustler": {:hex, :rustler, "0.21.0", "68cc4fc015d0b9541865ea78e78e9ef2dd91ee4be80bf543fd15791102a45aca", [:mix], [{:toml, "~> 0.5.2", [hex: :toml, repo: "hexpm", optional: false]}], "hexpm"},
+  "toml": {:hex, :toml, "0.5.2", "e471388a8726d1ce51a6b32f864b8228a1eb8edc907a0edf2bb50eab9321b526", [:mix], [], "hexpm"},
 }

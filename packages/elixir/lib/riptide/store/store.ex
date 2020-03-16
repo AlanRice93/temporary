@@ -1,6 +1,6 @@
 defmodule Riptide.Store do
   @callback init(opts :: any()) :: :ok | {:error, :atom}
-  @callback mutation(mut :: Riptide.Mutation.t(), opts :: any()) :: :ok | {:error, :atom}
+  @callback mutation(merges :: any, deletes :: any(), opts :: any()) :: :ok | {:error, :atom}
   @callback query(paths :: any, opts :: any()) :: any
 
   def mutation(mut) do
@@ -14,7 +14,9 @@ defmodule Riptide.Store do
   end
 
   def mutation(mut, store, opts) do
-    :ok = store.mutation(mut, opts)
+    merges = Dynamic.flatten(mut.merge)
+    deletes = Dynamic.flatten(mut.delete)
+    :ok = store.mutation(merges, deletes, opts)
   end
 
   def query(query) do
