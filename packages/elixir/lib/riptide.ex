@@ -1,8 +1,42 @@
 defmodule Riptide do
+  @internal %{internal: true}
+
+  def init() do
+    [
+      Riptide.Config.riptide_store_read(),
+      Riptide.Config.riptide_store_write()
+    ]
+    |> Enum.uniq()
+    |> Enum.map(fn {store, opts} ->
+      :ok = store.init(opts)
+    end)
+
+    :ok
+  end
+
+  def query(query, state \\ @internal) do
+    with :ok <- Riptide.Interceptor.before_query(query, state) do
+      {:ok, Riptide.Store.query(query)}
+    end
+  end
+
+  def query_path!(path, opts \\ %{}, state \\ @internal) do
+    {:ok, result} = query_path(path, opts, state)
+    result
+  end
+
+  def query_path(path, opts \\ %{}, state \\ @internal) do
+    case query(Dynamic.put(%{}, path, opts), state) do
+      {:ok, result} -> {:ok, Dynamic.get(result, path)}
+      result -> result
+    end
+  end
+
   def mutation(mut), do: mutation(mut, %{internal: true})
 
   def mutation(mut, state) do
-    with {:ok, before} <- Riptide.Interceptor.before_mutation(mut, state) do
+    with {:ok, before} <- Riptide.Interceptor.before_mutation(mut, state),
+         :ok <- Riptide.Store.mutation(mut) do
       {:ok, before}
     end
   end

@@ -266,7 +266,7 @@ class Base {
     constructor() {
         this.dispatcher_data = new Dispatcher();
     }
-    onData(cb) {
+    handle_data(cb) {
         this.dispatcher_data.add(cb);
     }
 }

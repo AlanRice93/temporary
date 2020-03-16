@@ -1,4 +1,6 @@
 defmodule Riptide.Processor do
+  require Logger
+
   def init(state) do
     Map.merge(
       %{
@@ -42,6 +44,12 @@ defmodule Riptide.Processor do
           {:reply, value, next} ->
             {:reply, reply(key, value, state), %{state | data: next}}
 
+          {:error, error, next} ->
+            {:reply, error(key, error, state), %{state | data: next}}
+
+          {:error, error} ->
+            {:reply, error(key, error, state), state}
+
           nil ->
             {:reply, error(key, [:not_implemented, action], state), state}
         end
@@ -68,7 +76,23 @@ defmodule Riptide.Processor do
     Enum.find_value(
       state.handlers ++ [Riptide.Handler.Ping, Riptide.Handler.Mutation, Riptide.Handler.Query],
       fn mod ->
-        apply(mod, fun, args)
+        try do
+          apply(mod, fun, args)
+        rescue
+          e ->
+            :error
+            |> Exception.format(e, __STACKTRACE__)
+            |> Logger.error(crash_reason: {e, __STACKTRACE__})
+
+            {:error, inspect(e)}
+        catch
+          _, e ->
+            :throw
+            |> Exception.format(e, __STACKTRACE__)
+            |> Logger.error(crash_reason: {e, __STACKTRACE__})
+
+            {:error, inspect(e)}
+        end
       end
     )
   end

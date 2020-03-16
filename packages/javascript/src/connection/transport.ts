@@ -5,7 +5,7 @@ import Dispatcher from '../dispatcher'
 export abstract class Base implements Riptide.Transport {
     abstract write(data: string): void
     protected dispatcher_data = new Dispatcher<string>()
-    onData(cb: (data: string) => void) {
+    handle_data(cb: (data: string) => void) {
         this.dispatcher_data.add(cb)
     }
 }

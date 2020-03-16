@@ -3,8 +3,10 @@ defmodule Riptide.Config do
 
   config :riptide, %{
     commands: [],
-    interceptors: [
-      Riptide.Interceptor.Sample
-    ]
+    store: %{
+      write: {Riptide.Store.Memory, []},
+      read: {Riptide.Store.Memory, []}
+    },
+    interceptors: []
   }
 end

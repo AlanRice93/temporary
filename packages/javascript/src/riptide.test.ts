@@ -16,7 +16,8 @@ describe('riptide', () => {
         await local.merge(['animals', 'shark'], 'hammerhead')
 
         const result = await remote.query_path(['animals'])
-        console.log(result)
+        expect(result).toEqual({ shark: 'hammerhead' })
+        expect(local.query_path(['animals', 'shark'])).toEqual('hammerhead')
 
     })
 })

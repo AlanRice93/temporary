@@ -1,4 +1,25 @@
 defmodule Riptide.Interceptor do
+  def before_query(query, state) do
+    query
+    |> Riptide.Query.flatten()
+    |> Stream.flat_map(fn {path, opts} ->
+      Stream.map(
+        Riptide.Config.riptide_interceptors(),
+        fn mod ->
+          {mod, mod.before_query(path, opts, state)}
+        end
+      )
+    end)
+    |> Enum.find_value(fn
+      {_mod, :ok} -> nil
+      {_, result} -> result
+    end)
+    |> case do
+      nil -> :ok
+      result -> result
+    end
+  end
+
   def before_mutation(mutation, state) do
     mutation
     |> trigger_interceptors(Riptide.Config.riptide_interceptors(), :before_mutation, [
@@ -34,6 +55,9 @@ defmodule Riptide.Interceptor do
   end
 
   @callback resolve_path(path :: list(String.t()), opts :: map, state :: any) ::
+              {:ok, any} | {:error, term} | nil
+
+  @callback before_query(path :: list(String.t()), opts :: map, state :: any) ::
               {:ok, any} | {:error, term} | nil
 
   # @callback validate_query(
@@ -75,15 +99,8 @@ defmodule Riptide.Interceptor do
     quote do
       def resolve_path(_path, _opts, _state), do: nil
       def before_mutation(_path, _layer, _mutation, _state), do: :ok
+      def before_query(_path, _opts, _state), do: :ok
       def effect(_path, _layer, _mutation, _state), do: :ok
     end
-  end
-end
-
-defmodule Riptide.Interceptor.Sample do
-  use Riptide.Interceptor
-
-  def before_mutation(["animals"], layer, _mut, _state) do
-    {:combine, Riptide.Mutation.merge(["creates"], layer.merge)}
   end
 end
