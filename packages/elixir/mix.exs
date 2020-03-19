@@ -28,7 +28,8 @@ defmodule Riptide.MixProject do
       {:jason, "~> 1.1"},
       {:dynamic, "~> 0.1.2"},
       {:brine, "~> 0.2.2"},
-      {:bridge_lmdb, github: "ironbay/bridge_lmdb"}
+      {:bridge_lmdb, github: "ironbay/bridge_lmdb", optional: true},
+      {:postgrex, "~> 0.15.3", optional: true}
     ]
   end
 end

@@ -7,8 +7,9 @@ defmodule Riptide do
       Riptide.Config.riptide_store_write()
     ]
     |> Enum.uniq()
-    |> Enum.map(fn {store, opts} ->
-      :ok = store.init(opts)
+    |> Enum.map(fn
+      {store, opts} -> :ok = store.init(opts)
+      _ -> :ok
     end)
 
     :ok
@@ -16,7 +17,10 @@ defmodule Riptide do
 
   def query(query, state \\ @internal) do
     with :ok <- Riptide.Interceptor.before_query(query, state) do
-      {:ok, Riptide.Store.query(query)}
+      case Riptide.Interceptor.resolve_query(query, state) do
+        nil -> {:ok, Riptide.Store.query(query)}
+        result -> {:ok, result}
+      end
     end
   end
 

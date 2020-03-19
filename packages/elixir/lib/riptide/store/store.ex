@@ -1,6 +1,6 @@
 defmodule Riptide.Store do
-  @callback init(opts :: any()) :: :ok | {:error, :atom}
-  @callback mutation(merges :: any, deletes :: any(), opts :: any()) :: :ok | {:error, :atom}
+  @callback init(opts :: any()) :: :ok | {:error, atom()}
+  @callback mutation(merges :: any, deletes :: any(), opts :: any()) :: :ok | {:error, atom()}
   @callback query(paths :: any, opts :: any()) :: any
 
   def mutation(mut) do
