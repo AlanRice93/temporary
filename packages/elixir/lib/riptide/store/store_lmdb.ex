@@ -36,7 +36,6 @@ defmodule Riptide.Store.LMDB do
     |> Stream.map(fn {path, opts} ->
       {
         path,
-        opts,
         env
         |> iterate(path, opts)
         |> Stream.map(fn {path, value} -> {decode_path(path), Jason.decode!(value)} end)

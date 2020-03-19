@@ -38,7 +38,7 @@ defmodule Riptide.Store.Memory do
   end
 
   def query(paths, _opts) do
-    Stream.map(paths, fn {path, opts} -> {path, opts, query_path(path, opts)} end)
+    Stream.map(paths, fn {path, opts} -> {path, query_path(path, opts)} end)
   end
 
   def query_path(path, opts) do

@@ -242,4 +242,10 @@ defmodule Riptide.Mutation do
       end
     end)
   end
+
+  def chunk(stream, count) do
+    stream
+    |> Stream.chunk_every(count)
+    |> Stream.map(&Riptide.Mutation.combine/1)
+  end
 end

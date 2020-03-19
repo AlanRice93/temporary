@@ -29,7 +29,8 @@ defmodule Riptide.Store do
 
     paths
     |> store.query(store_opts)
-    |> Stream.flat_map(fn {path, opts, stream} ->
+    |> Stream.flat_map(fn {path, stream} ->
+      opts = Dynamic.get(query, path)
       count = Enum.count(path)
 
       stream
@@ -55,7 +56,7 @@ defmodule Riptide.Store do
 
     [{path, opts}]
     |> store.query(store_opts)
-    |> Stream.flat_map(fn {_path, _opts, stream} -> stream end)
+    |> Stream.flat_map(fn {_path, stream} -> stream end)
     |> chunk(count, opts)
     |> Stream.map(fn values ->
       values
