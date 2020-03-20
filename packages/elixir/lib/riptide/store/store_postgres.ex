@@ -97,38 +97,172 @@ defmodule Riptide.Store.Postgres do
   end
 
   def query(paths, store_opts) do
-    {cases, wheres, args, _} =
-      Enum.reduce(paths, {[], [], [], 0}, fn {path, opts}, {cases, wheres, args, count} ->
+    # {full, partial} = Enum.split_with(paths, fn {_path, opts} -> opts[:limit] == nil end)
+
+    Stream.resource(
+      fn ->
+        {holder, conn} = txn_start(store_opts)
+        Postgrex.query!(conn, "SET enable_seqscan = OFF;", [])
+        {holder, conn}
+      end,
+      fn
+        {holder, conn} ->
+          {Stream.concat([
+             query_partial(paths, conn)
+             #  query_full(full, conn)
+           ]), holder}
+
+        holder ->
+          {:halt, holder}
+      end,
+      fn holder -> txn_end(holder) end
+    )
+  end
+
+  def query_partial(paths, conn) do
+    paths
+    |> Stream.map(fn {path, opts} ->
+      {path, query_path(path, opts, conn)}
+    end)
+  end
+
+  def query_full([], _conn), do: []
+
+  def query_full(paths, conn) do
+    # {cases, wheres, args, _} =
+    #   Enum.reduce(paths, {[], [], [], 0}, fn {path, opts}, {cases, wheres, args, count} ->
+    #     combined = encode_prefix(path)
+    #     {min, max} = Riptide.Store.Prefix.range(combined, opts)
+
+    #     {
+    #       cases ++ ["(path >= $#{count + 2} AND path < $#{count + 3}) THEN $#{count + 1}"],
+    #       wheres ++ ["(path >= $#{count + 2} AND path < $#{count + 3})"],
+    #       args ++ [combined, encode_path(min), encode_path(max)],
+    #       count + 3
+    #     }
+    #   end)
+
+    # statement = """
+    #   SELECT *,
+    #     CASE WHEN
+    #       #{Enum.join(cases, "\nWHEN")}
+    #     END as prefix
+    #   FROM #{opts_table(store_opts)}
+    #   WHERE
+    #     #{Enum.join(wheres, "OR")}
+    # """
+
+    # {cases, mins, maxes} =
+    #   Enum.reduce(paths, {[], [], []}, fn {path, opts}, {cases, mins, maxes} ->
+    #     combined = encode_prefix(path)
+    #     {min, max} = Riptide.Store.Prefix.range(combined, opts)
+
+    #     {
+    #       # cases ++ ["(path >= $#{count + 2} AND path < $#{count + 3}) THEN $#{count + 1}"],
+    #       cases,
+    #       [encode_path(min) | mins],
+    #       [encode_path(max) | maxes]
+    #       # wheres ++ ["(path >= $#{count + 2} AND path < $#{count + 3})"],
+    #       # args ++ [combined, encode_path(min), encode_path(max)],
+    #       # count + 3
+    #     }
+    #   end)
+    # args = [mins, maxes]
+
+    # statement = """
+    #   SELECT *,
+    #        CASE WHEN
+    #          #{Enum.join(cases, "\nWHEN")}
+    #        END as prefix
+    #   FROM riptide WHERE
+    #   path > ANY ($1) AND
+    #   path <= ANY ($2)
+    # """
+
+    {values, args, _} =
+      Enum.reduce(paths, {[], [], 0}, fn {path, opts}, {values, args, count} ->
         combined = encode_prefix(path)
         {min, max} = Riptide.Store.Prefix.range(combined, opts)
 
         {
-          cases ++ ["(path >= $#{count + 2} AND path < $#{count + 3}) THEN $#{count + 1}"],
-          wheres ++ ["(path >= $#{count + 2} AND path < $#{count + 3})"],
+          values ++ ["($#{count + 1}, $#{count + 2}, $#{count + 3})"],
           args ++ [combined, encode_path(min), encode_path(max)],
           count + 3
         }
       end)
 
     statement = """
-      SELECT *,
-        CASE WHEN
-          #{Enum.join(cases, "\nWHEN")}
-        END as prefix
-      FROM #{opts_table(store_opts)}
-      WHERE
-        #{Enum.join(wheres, "OR")}
+    WITH ranges (prefix, min, max) AS (VALUES #{Enum.join(values, ", ")})
+    SELECT ranges.prefix, path, value FROM riptide JOIN ranges ON riptide.path >= ranges.min AND riptide.path < ranges.max
     """
 
-    Postgrex.query!(opts_name(store_opts), statement, args)
-    |> Map.get(:rows)
-    |> Stream.map(fn [path, value, prefix] ->
-      {decode_path(prefix), decode_path(path), value}
-    end)
-    |> Stream.chunk_by(fn {prefix, _path, _value} -> prefix end)
+    # Postgrex.query!(opts_name(store_opts), "SET enable_seqscan = OFF;", [])
+
+    # Postgrex.query!(
+    #   opts_name(store_opts),
+    #   "EXPLAIN ANALYZE " <> statement,
+    #   args,
+    #   timeout: opts_transaction_timeout(store_opts)
+    # )
+    # |> IO.inspect()
+    Postgrex.stream(
+      conn,
+      statement,
+      args,
+      max_rows: 1000
+    )
+    |> Stream.flat_map(fn item -> item.rows end)
+    |> Stream.chunk_by(fn [prefix, _path, _value] -> prefix end)
     |> Stream.map(fn chunk ->
-      {group, _, _} = Enum.at(chunk, 0)
-      {group, Stream.map(chunk, fn {_, path, value} -> {path, value} end)}
+      [prefix, _, _] = Enum.at(chunk, 0)
+
+      {
+        decode_path(prefix),
+        Stream.map(chunk, fn [_, path, value] -> {decode_path(path), value} end)
+      }
     end)
+  end
+
+  def query_path(path, opts, conn) do
+    combined = encode_prefix(path)
+    {min, max} = Riptide.Store.Prefix.range(combined, opts)
+
+    Postgrex.stream(
+      conn,
+      "SELECT path, value FROM riptide WHERE path >= $1 AND path < $2",
+      [encode_path(min), encode_path(max)]
+    )
+    |> Stream.flat_map(fn item -> item.rows end)
+    |> Stream.map(fn [path, value] -> {decode_path(path), value} end)
+  end
+
+  def txn_start(store_opts) do
+    self = self()
+
+    {:ok, child} =
+      Task.start_link(fn ->
+        Postgrex.transaction(
+          opts_name(store_opts),
+          fn conn ->
+            send(self, {:conn, conn})
+
+            receive do
+              {:conn, :done} -> :ok
+            end
+          end,
+          timeout: opts_transaction_timeout(store_opts)
+        )
+      end)
+
+    conn =
+      receive do
+        {:conn, conn} -> conn
+      end
+
+    {child, conn}
+  end
+
+  def txn_end(holder) do
+    send(holder, {:conn, :done})
   end
 end

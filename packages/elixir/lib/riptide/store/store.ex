@@ -25,7 +25,7 @@ defmodule Riptide.Store do
   end
 
   def query(query, store, store_opts) do
-    paths = Riptide.Query.flatten(query)
+    paths = Riptide.Query.flatten(query) |> Enum.to_list()
 
     paths
     |> store.query(store_opts)
@@ -66,6 +66,22 @@ defmodule Riptide.Store do
     end)
     |> Stream.flat_map(&inflate/1)
   end
+
+  # def chunk(stream, query) do
+  #   chunked =
+  #     Stream.chunk_while(stream, {nil, []}, fn {prefix, path, value}, {current, values} ->
+  #       cond do
+  #         current == nil -> {:cont, {prefix, [{path, value}]}}
+  #         current == prefix -> {:cont, {prefix, [{path, value} | values]}}
+  #         current !== prefix -> {:cont, {current, values}, {prefix, [{path, value}]}}
+  #       end
+  #     end)
+
+  #   case opts[:limit] do
+  #     nil -> chunked
+  #     result -> Stream.take(chunked, result)
+  #   end
+  # end
 
   def chunk(stream, count, opts) do
     chunked = Stream.chunk_by(stream, fn {path, _value} -> Enum.at(path, count) end)

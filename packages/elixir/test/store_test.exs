@@ -13,7 +13,6 @@ defmodule Riptide.Test.Store do
       )
 
     test_store(Riptide.Store.Postgres, %{name: pid})
-    test_large(Riptide.Store.Postgres, %{name: pid})
   end
 
   test Riptide.Store.LMDB do
@@ -64,8 +63,5 @@ defmodule Riptide.Test.Store do
         store,
         opts
       )
-  end
-
-  defp test_large(store, opts) do
   end
 end
