@@ -10,7 +10,7 @@ defmodule Riptide.Handler.Query do
         layers = Riptide.Query.flatten(query)
 
         Enum.each(layers, fn {path, opts} ->
-          if opts[:subscribe] do
+          if opts[:subscribe] === true do
             Riptide.Subscribe.watch(path)
           end
         end)

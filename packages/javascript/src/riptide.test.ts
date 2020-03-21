@@ -1,4 +1,5 @@
 import * as Riptide from './'
+import sleep from './sleep'
 describe('riptide', () => {
     it('implementation', async () => {
         const local = new Riptide.Store.Memory()
@@ -13,16 +14,22 @@ describe('riptide', () => {
 
         const remote = new Riptide.Store.Remote(conn)
         local.sync(remote)
-        await local.merge(['animals', 'shark'], 'hammerhead')
 
-        const result = await remote.query_path(['animals'])
-        expect(result).toEqual({ shark: 'hammerhead' })
-        expect(local.query_path(['animals', 'shark'])).toEqual('hammerhead')
+        await local.delete(['sharks'])
+        expect(local.query_path(['sharks'])).toEqual(undefined)
 
-        await remote.query_path(['live'], { subscribe: true })
-        await remote.merge(['live', 'octopus'], true)
-        await remote.merge(['live', 'tuna'], true)
-        expect(local.query_path(['live'])).toEqual({ octopus: true, tuna: true })
+        const hh = { key: '001', name: 'Hammerhead' }
+        const gw = { key: '002', name: 'Great White' }
+
+        await local.merge(['sharks', hh.key], hh)
+        const result = await remote.query_path(['sharks', hh.key])
+        expect(result).toEqual(hh)
+        expect(local.query_path(['sharks', hh.key])).toEqual(hh)
+
+        await remote.query_path(['sharks'], { subscribe: true })
+        await remote.merge(['sharks', gw.key], gw)
+        await sleep(100)
+        expect(local.query_path(['sharks', gw.key])).toEqual(gw)
 
     })
 })
