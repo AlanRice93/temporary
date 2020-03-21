@@ -16,11 +16,19 @@ defmodule Riptide do
   end
 
   def query(query, state \\ @internal) do
-    with :ok <- Riptide.Interceptor.before_query(query, state) do
-      case Riptide.Interceptor.resolve_query(query, state) do
+    with :ok <- Riptide.Interceptor.query_before(query, state) do
+      case Riptide.Interceptor.query_resolve(query, state) do
         nil -> {:ok, Riptide.Store.query(query)}
         result -> {:ok, result}
       end
+    end
+  end
+
+  def stream(path, opts \\ %{}, state \\ @internal) do
+    query = Dynamic.put(%{}, path, opts)
+
+    with :ok <- Riptide.Interceptor.query_before(query, state) do
+      Riptide.Store.stream(path, opts)
     end
   end
 
@@ -39,16 +47,37 @@ defmodule Riptide do
   def mutation(mut), do: mutation(mut, %{internal: true})
 
   def mutation(mut, state) do
-    with {:ok, before} <- Riptide.Interceptor.before_mutation(mut, state),
-         :ok <- Riptide.Subscribe.broadcast_mutation(before),
-         :ok <- Riptide.Store.mutation(before) do
-      {:ok, before}
+    with {:ok, prepared} <- Riptide.Interceptor.mutation_before(mut, state),
+         :ok <- Riptide.Subscribe.broadcast_mutation(prepared),
+         :ok <- Riptide.Store.mutation(prepared),
+         :ok <- Riptide.Interceptor.mutation_after(prepared, state) do
+      {:ok, prepared}
     end
   end
 
   def merge(path, value), do: mutation(Riptide.Mutation.merge(path, value))
   def merge(path, value, state), do: mutation(Riptide.Mutation.merge(path, value), state)
 
+  def merge!(path, value) do
+    {:ok, result} = mutation(Riptide.Mutation.merge(path, value))
+    result
+  end
+
+  def merge!(path, value, state) do
+    {:ok, result} = mutation(Riptide.Mutation.merge(path, value), state)
+    result
+  end
+
   def delete(path), do: mutation(Riptide.Mutation.delete(path))
   def delete(path, state), do: mutation(Riptide.Mutation.delete(path), state)
+
+  def delete!(path) do
+    {:ok, result} = mutation(Riptide.Mutation.delete(path))
+    result
+  end
+
+  def delete!(path, state) do
+    {:ok, result} = mutation(Riptide.Mutation.delete(path), state)
+    result
+  end
 end

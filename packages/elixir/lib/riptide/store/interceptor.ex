@@ -1,12 +1,12 @@
 defmodule Riptide.Interceptor do
   require Logger
 
-  def before_query(query, state),
-    do: before_query(query, state, Riptide.Config.riptide_interceptors())
+  def query_before(query, state),
+    do: query_before(query, state, Riptide.Config.riptide_interceptors())
 
-  def before_query(query, state, interceptors) do
+  def query_before(query, state, interceptors) do
     query
-    |> trigger_query(interceptors, :before_query, [state])
+    |> query_trigger(interceptors, :query_before, [state])
     |> Enum.find_value(fn
       {_mod, nil} -> nil
       {_mod, :ok} -> nil
@@ -18,12 +18,12 @@ defmodule Riptide.Interceptor do
     end
   end
 
-  def before_mutation(mutation, state),
-    do: before_mutation(mutation, state, Riptide.Config.riptide_interceptors())
+  def mutation_before(mutation, state),
+    do: mutation_before(mutation, state, Riptide.Config.riptide_interceptors())
 
-  def before_mutation(mutation, state, interceptors) do
+  def mutation_before(mutation, state, interceptors) do
     mutation
-    |> trigger_mutation(interceptors, :before_mutation, [
+    |> mutation_trigger(interceptors, :mutation_before, [
       mutation,
       state
     ])
@@ -47,19 +47,48 @@ defmodule Riptide.Interceptor do
     end)
   end
 
-  def resolve_query(query, state),
-    do: resolve_query(query, state, Riptide.Config.riptide_interceptors())
+  def mutation_after(mutation, state),
+    do: mutation_after(mutation, state, Riptide.Config.riptide_interceptors())
 
-  def resolve_query(query, state, interceptors) do
+  def mutation_after(mutation, state, interceptors) do
+    mutation
+    |> mutation_trigger(interceptors, :mutation_after, [
+      mutation,
+      state
+    ])
+    |> Enum.find(fn
+      {_mod, :ok} -> false
+      {_mod, nil} -> false
+      {_mod, {:error, _}} -> true
+    end)
+    |> case do
+      nil -> :ok
+      {_mod, result} -> result
+    end
+  end
+
+  defp mutation_trigger(mut, interceptors, fun, args) do
+    layers = Riptide.Mutation.layers(mut)
+
+    (interceptors ++ [Riptide.Scheduler.Interceptor])
+    |> Stream.flat_map(fn mod ->
+      Stream.map(layers, fn {path, data} -> {mod, apply(mod, fun, [path, data | args])} end)
+    end)
+  end
+
+  def query_resolve(query, state),
+    do: query_resolve(query, state, Riptide.Config.riptide_interceptors())
+
+  def query_resolve(query, state, interceptors) do
     query
-    |> trigger_query(interceptors, :resolve_query, [state])
+    |> query_trigger(interceptors, :query_resolve, [state])
     |> Enum.find_value(fn
       {_mod, nil} -> nil
       {_, result} -> result
     end)
   end
 
-  defp trigger_query(query, interceptors, fun, args) do
+  defp query_trigger(query, interceptors, fun, args) do
     layers = Riptide.Query.flatten(query)
 
     interceptors
@@ -75,15 +104,6 @@ defmodule Riptide.Interceptor do
     end)
   end
 
-  defp trigger_mutation(mut, interceptors, fun, args) do
-    layers = Riptide.Mutation.layers(mut)
-
-    interceptors
-    |> Stream.flat_map(fn mod ->
-      Stream.map(layers, fn {path, data} -> {mod, apply(mod, fun, [path, data | args])} end)
-    end)
-  end
-
   def logging?() do
     Keyword.get(Logger.metadata(), :interceptor) == true
   end
@@ -96,20 +116,27 @@ defmodule Riptide.Interceptor do
     Logger.metadata(interceptor: false)
   end
 
-  @callback resolve_query(path :: list(String.t()), opts :: map, state :: any) ::
+  @callback query_resolve(path :: list(String.t()), opts :: map, state :: any) ::
               {:ok, any} | {:error, term} | nil
 
-  @callback before_query(path :: list(String.t()), opts :: map, state :: any) ::
+  @callback query_before(path :: list(String.t()), opts :: map, state :: any) ::
               {:ok, any} | {:error, term} | nil
 
-  @callback before_mutation(
+  @callback mutation_before(
               path :: list(String.t()),
               layer :: Riptide.Mutation.t(),
               mut :: Riptide.Mutation.t(),
               state :: String.t()
             ) :: :ok | {:error, term} | {:combine, Riptide.Mutation.t()}
 
-  @callback effect(
+  @callback mutation_after(
+              path :: list(String.t()),
+              layer :: Riptide.Mutation.t(),
+              mut :: Riptide.Mutation.t(),
+              state :: String.t()
+            ) :: :ok
+
+  @callback mutation_effect(
               path :: list(String.t()),
               layer :: Riptide.Mutation.t(),
               mut :: Riptide.Mutation.t(),
@@ -125,10 +152,11 @@ defmodule Riptide.Interceptor do
 
   defmacro __before_compile__(_env) do
     quote do
-      def before_mutation(_path, _layer, _mutation, _state), do: nil
-      def before_query(_path, _opts, _state), do: nil
-      def resolve_query(_path, _opts, _state), do: nil
-      def effect(_path, _layer, _mutation, _state), do: nil
+      def mutation_before(_path, _layer, _mutation, _state), do: nil
+      def mutation_after(_path, _layer, _mutation, _state), do: nil
+      def mutation_effect(_path, _layer, _mutation, _state), do: nil
+      def query_before(_path, _opts, _state), do: nil
+      def query_resolve(_path, _opts, _state), do: nil
     end
   end
 end

@@ -2,15 +2,20 @@ defmodule Riptide.Test.Interceptor do
   defmodule Example do
     use Riptide.Interceptor
 
-    def before_mutation(["animals"], %{merge: %{"shark" => shark}}, _mut, _state) do
+    def mutation_before(["animals"], %{merge: %{"shark" => shark}}, _mut, _state) do
       {:combine, Riptide.Mutation.merge(["ocean", shark], true)}
     end
 
-    def before_query(["denied" | _rest], _opts, _state) do
+    def mutation_after(["animals"], %{merge: %{"shark" => shark}}, _mut, _state) do
+      Process.put(:after, true)
+      :ok
+    end
+
+    def query_before(["denied" | _rest], _opts, _state) do
       {:error, :denied}
     end
 
-    def resolve_query(["resolved" | path], _opts, _state) do
+    def query_resolve(["resolved" | path], _opts, _state) do
       %{
         "turtle" => "snapping"
       }
@@ -20,7 +25,7 @@ defmodule Riptide.Test.Interceptor do
 
   use ExUnit.Case
 
-  test "before_mutation" do
+  test "mutation_before" do
     Riptide.Interceptor.logging_enable()
 
     {
@@ -31,16 +36,27 @@ defmodule Riptide.Test.Interceptor do
         }
       }
     } =
-      Riptide.Interceptor.before_mutation(
+      Riptide.Interceptor.mutation_before(
         Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
         %{},
         [Example]
       )
   end
 
-  test "resolve_query" do
+  test "mutation_after" do
+    Riptide.Interceptor.logging_enable()
+
+    :ok =
+      Riptide.Interceptor.mutation_after(
+        Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
+        %{},
+        [Example]
+      )
+  end
+
+  test "query_resolve" do
     %{"turtle" => "snapping"} =
-      Riptide.Interceptor.resolve_query(
+      Riptide.Interceptor.query_resolve(
         %{
           "resolved" => %{}
         },
@@ -49,9 +65,9 @@ defmodule Riptide.Test.Interceptor do
       )
   end
 
-  test "before_query" do
+  test "query_before" do
     {:error, :denied} =
-      Riptide.Interceptor.before_query(
+      Riptide.Interceptor.query_before(
         %{
           "denied" => %{}
         },
