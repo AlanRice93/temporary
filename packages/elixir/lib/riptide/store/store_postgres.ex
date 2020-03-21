@@ -129,56 +129,6 @@ defmodule Riptide.Store.Postgres do
   def query_full([], _conn), do: []
 
   def query_full(paths, conn) do
-    # {cases, wheres, args, _} =
-    #   Enum.reduce(paths, {[], [], [], 0}, fn {path, opts}, {cases, wheres, args, count} ->
-    #     combined = encode_prefix(path)
-    #     {min, max} = Riptide.Store.Prefix.range(combined, opts)
-
-    #     {
-    #       cases ++ ["(path >= $#{count + 2} AND path < $#{count + 3}) THEN $#{count + 1}"],
-    #       wheres ++ ["(path >= $#{count + 2} AND path < $#{count + 3})"],
-    #       args ++ [combined, encode_path(min), encode_path(max)],
-    #       count + 3
-    #     }
-    #   end)
-
-    # statement = """
-    #   SELECT *,
-    #     CASE WHEN
-    #       #{Enum.join(cases, "\nWHEN")}
-    #     END as prefix
-    #   FROM #{opts_table(store_opts)}
-    #   WHERE
-    #     #{Enum.join(wheres, "OR")}
-    # """
-
-    # {cases, mins, maxes} =
-    #   Enum.reduce(paths, {[], [], []}, fn {path, opts}, {cases, mins, maxes} ->
-    #     combined = encode_prefix(path)
-    #     {min, max} = Riptide.Store.Prefix.range(combined, opts)
-
-    #     {
-    #       # cases ++ ["(path >= $#{count + 2} AND path < $#{count + 3}) THEN $#{count + 1}"],
-    #       cases,
-    #       [encode_path(min) | mins],
-    #       [encode_path(max) | maxes]
-    #       # wheres ++ ["(path >= $#{count + 2} AND path < $#{count + 3})"],
-    #       # args ++ [combined, encode_path(min), encode_path(max)],
-    #       # count + 3
-    #     }
-    #   end)
-    # args = [mins, maxes]
-
-    # statement = """
-    #   SELECT *,
-    #        CASE WHEN
-    #          #{Enum.join(cases, "\nWHEN")}
-    #        END as prefix
-    #   FROM riptide WHERE
-    #   path > ANY ($1) AND
-    #   path <= ANY ($2)
-    # """
-
     {values, args, _} =
       Enum.reduce(paths, {[], [], 0}, fn {path, opts}, {values, args, count} ->
         combined = encode_prefix(path)
@@ -196,15 +146,6 @@ defmodule Riptide.Store.Postgres do
     SELECT ranges.prefix, path, value FROM riptide JOIN ranges ON riptide.path >= ranges.min AND riptide.path < ranges.max
     """
 
-    # Postgrex.query!(opts_name(store_opts), "SET enable_seqscan = OFF;", [])
-
-    # Postgrex.query!(
-    #   opts_name(store_opts),
-    #   "EXPLAIN ANALYZE " <> statement,
-    #   args,
-    #   timeout: opts_transaction_timeout(store_opts)
-    # )
-    # |> IO.inspect()
     Postgrex.stream(
       conn,
       statement,

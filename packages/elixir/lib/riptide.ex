@@ -40,7 +40,8 @@ defmodule Riptide do
 
   def mutation(mut, state) do
     with {:ok, before} <- Riptide.Interceptor.before_mutation(mut, state),
-         :ok <- Riptide.Store.mutation(mut) do
+         :ok <- Riptide.Subscribe.broadcast_mutation(before),
+         :ok <- Riptide.Store.mutation(before) do
       {:ok, before}
     end
   end

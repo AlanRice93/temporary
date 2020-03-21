@@ -74,7 +74,13 @@ defmodule Riptide.Processor do
 
   def trigger_handlers(state, fun, args) do
     Enum.find_value(
-      state.handlers ++ [Riptide.Handler.Ping, Riptide.Handler.Mutation, Riptide.Handler.Query],
+      state.handlers ++
+        [
+          Riptide.Handler.Ping,
+          Riptide.Handler.Mutation,
+          Riptide.Handler.Query,
+          Riptide.Handler.Subscribe
+        ],
       fn mod ->
         try do
           apply(mod, fun, args)
