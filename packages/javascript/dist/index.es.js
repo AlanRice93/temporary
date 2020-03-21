@@ -109,14 +109,14 @@ class Local {
         }));
         this.syncs.push(target);
     }
-    query_path(path) {
-        return Dynamic.get(this.query(Dynamic.put({}, path, {})), path);
+    query_path(path, opts = {}) {
+        return Dynamic.get(this.query(Dynamic.put({}, path, opts)), path);
     }
-    query_values(path) {
-        return Object.values(this.query_path(path) || {});
+    query_values(path, opts = {}) {
+        return Object.values(this.query_path(path, opts) || {});
     }
-    query_keys(path) {
-        return Object.keys(this.query_path(path) || {});
+    query_keys(path, opts = {}) {
+        return Object.keys(this.query_path(path, opts) || {});
     }
     merge(path, value) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -214,19 +214,19 @@ class Remote {
             return result.merge;
         });
     }
-    query_path(path) {
+    query_path(path, opts = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Dynamic.get(yield this.query(Dynamic.put({}, path, {})), path);
+            return Dynamic.get(yield this.query(Dynamic.put({}, path, opts)), path);
         });
     }
-    query_values(path) {
+    query_values(path, opts = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Object.values((yield this.query_path(path)) || {});
+            return Object.values((yield this.query_path(path, opts)) || {});
         });
     }
-    query_keys(path) {
+    query_keys(path, opts = {}) {
         return __awaiter(this, void 0, void 0, function* () {
-            return Object.keys((yield this.query_path(path)) || {});
+            return Object.keys((yield this.query_path(path, opts)) || {});
         });
     }
     merge(path, value) {

@@ -19,5 +19,10 @@ describe('riptide', () => {
         expect(result).toEqual({ shark: 'hammerhead' })
         expect(local.query_path(['animals', 'shark'])).toEqual('hammerhead')
 
+        await remote.query_path(['live'], { subscribe: true })
+        await remote.merge(['live', 'octopus'], true)
+        await remote.merge(['live', 'tuna'], true)
+        expect(local.query_path(['live'])).toEqual({ octopus: true, tuna: true })
+
     })
 })

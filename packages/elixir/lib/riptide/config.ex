@@ -4,8 +4,10 @@ defmodule Riptide.Config do
   config :riptide, %{
     commands: [],
     store: %{
-      write: nil,
-      read: nil
+      write: {Riptide.Store.Memory, []},
+      read: {Riptide.Store.Memory, []}
+      # write: nil,
+      # read: nil
     },
     interceptors: []
   }

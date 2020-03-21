@@ -8,9 +8,9 @@ export default class Remote<T extends Riptide.Transport, F extends Riptide.Forma
     query(q: Riptide.Query): Promise<{
         [key: string]: any;
     }>;
-    query_path(path: string[]): Promise<unknown>;
-    query_values(path: string[]): Promise<any[]>;
-    query_keys(path: string[]): Promise<string[]>;
+    query_path(path: string[], opts?: Riptide.Query.Opts): Promise<unknown>;
+    query_values(path: string[], opts?: Riptide.Query.Opts): Promise<any[]>;
+    query_keys(path: string[], opts?: Riptide.Query.Opts): Promise<string[]>;
     merge(path: string[], value: any): Promise<void>;
     delete(path: string[]): Promise<void>;
 }

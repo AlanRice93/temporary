@@ -7,13 +7,25 @@ defmodule Riptide.Handler.Query do
         {:error, msg, state}
 
       {:ok, result} ->
+        layers = Riptide.Query.flatten(query)
+
+        Enum.each(layers, fn {path, opts} ->
+          if opts[:subscribe] do
+            Riptide.Subscribe.watch(path)
+          end
+        end)
+
         {:reply,
-         query
-         |> Riptide.Query.flatten()
-         |> Stream.filter(fn {_path, opts} -> opts == %{} end)
-         |> Stream.map(fn {path, _} -> Riptide.Mutation.delete(path) end)
-         |> Riptide.Mutation.combine()
-         |> Riptide.Mutation.merge([], result), state}
+         layers
+         |> Enum.reduce(Riptide.Mutation.new(result), fn {path, opts}, collect ->
+           opts
+           |> Map.keys()
+           |> Enum.any?(fn key -> Enum.member?([:limit, :min, :max], key) end)
+           |> case do
+             true -> Riptide.Mutation.delete(collect, path)
+             false -> collect
+           end
+         end), state}
     end
   end
 end

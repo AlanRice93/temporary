@@ -7,7 +7,7 @@ defmodule Riptide.Test.Subscribe do
     mut = Riptide.Mutation.merge(["animals", "shark"], "hammerhead")
     Riptide.Subscribe.broadcast_mutation(mut)
 
-    {:mutation, mut} =
+    {:mutation, ^mut} =
       receive do
         result -> result
       end

@@ -4,7 +4,11 @@ declare namespace Riptide {
         delete: { [key: string]: 1 | Mutation['delete'] }
     }
 
-    type Query = { [key: string]: Query | { min?: string, max?: string, limit?: string } }
+    type Query = { [key: string]: Query | Query.Opts }
+
+    namespace Query {
+        type Opts = { min?: string, max?: string, limit?: string, subscribe?: boolean }
+    }
 
     interface Format {
         encode(input: any): string

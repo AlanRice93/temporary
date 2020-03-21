@@ -8,12 +8,16 @@ declare namespace Riptide {
         };
     }
     type Query = {
-        [key: string]: Query | {
+        [key: string]: Query | Query.Opts;
+    };
+    namespace Query {
+        type Opts = {
             min?: string;
             max?: string;
             limit?: string;
+            subscribe?: boolean;
         };
-    };
+    }
     interface Format {
         encode(input: any): string;
         decode<T>(input: any): T;

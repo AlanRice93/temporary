@@ -15,11 +15,14 @@ defmodule Riptide.Query do
         true ->
           [
             {full,
-             %{
-               min: value[:min] || value["min"] || nil,
-               max: value[:max] || value["max"] || nil,
-               limit: value[:limit] || value["limit"] || nil
-             }}
+             [
+               min: value[:min] || value["min"],
+               max: value[:max] || value["max"],
+               limit: value[:limit] || value["limit"],
+               subscribe: value[:subscribe] || value["subscribe"]
+             ]
+             |> Stream.filter(fn {_key, value} -> value != nil end)
+             |> Enum.into(%{})}
           ]
 
         false ->

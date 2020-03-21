@@ -1,4 +1,4 @@
-defmodule Riptide.Handlers.Subscribe do
+defmodule Riptide.Handler.Subscribe do
   use Riptide.Handler
 
   def handle_info({:mutation, mut}, state) do

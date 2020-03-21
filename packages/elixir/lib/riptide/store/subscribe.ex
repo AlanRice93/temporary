@@ -12,7 +12,7 @@ defmodule Riptide.Subscribe do
         group
         |> :pg2.join(pid)
         |> case do
-          {:error, {:no_such_group, group}} ->
+          {:error, {:no_such_group, _}} ->
             :pg2.create(group)
             watch(path, pid)
 
@@ -23,7 +23,10 @@ defmodule Riptide.Subscribe do
   end
 
   def member?(group, pid) do
-    pid in :pg2.get_members(group)
+    case :pg2.get_members(group) do
+      {:error, _} -> false
+      result -> pid in result
+    end
   end
 
   def broadcast_mutation(mut) do

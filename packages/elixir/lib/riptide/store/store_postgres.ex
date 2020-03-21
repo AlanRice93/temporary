@@ -19,7 +19,6 @@ defmodule Riptide.Store.Postgres do
 
   def opts_table(opts), do: Map.get(opts, :table, "riptide")
   def opts_name(opts), do: Map.get(opts, :name, :postgres)
-
   def opts_transaction_timeout(opts), do: Map.get(opts, :transaction_timeout, :timer.minutes(10))
 
   def mutation(merges, deletes, opts) do
