@@ -69,7 +69,7 @@ defmodule Riptide.Scheduler do
               Riptide.merge!([@root, task, "count"], 0)
           end
 
-          {:stop, :normal, task}
+          :ok
         rescue
           e ->
             :error
