@@ -4,7 +4,13 @@ defmodule Riptide.MixProject do
   def project do
     [
       app: :riptide,
-      version: "0.1.0",
+      version: "0.2.0",
+      description: "Framework for building realtime applications",
+      package: [
+        maintainers: ["thdxr", "ironbay"],
+        licenses: ["MIT"],
+        links: %{}
+      ],
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps()
@@ -28,8 +34,9 @@ defmodule Riptide.MixProject do
       {:jason, "~> 1.1"},
       {:dynamic, "~> 0.1.2"},
       {:brine, "~> 0.2.2"},
-      {:bridge_lmdb, github: "ironbay/bridge_lmdb", optional: true},
-      {:postgrex, "~> 0.15.3", optional: true}
+      {:bridge_lmdb, "~> 0.1.1", optional: true},
+      {:postgrex, "~> 0.15.3", optional: true},
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 end
