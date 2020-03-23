@@ -1,109 +1,74 @@
-defmodule Riptide.Scheduler do
+defmodule Riptide.Scheduler.Dispatch do
   require Logger
   use GenServer
 
-  @root "riptide:scheduler"
-
-  def start_link() do
+  def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
   def init(_) do
-    send(self(), :reload)
-    {:ok, %{}}
+    :timer.send_interval(:timer.seconds(1), :poll)
+    {:ok, %{active: %{}}}
   end
 
-  def handle_info(:reload, state) do
-    [@root]
-    |> Riptide.stream()
-    |> Enum.each(fn
-      {task, %{"timestamp" => ts}} -> schedule(task, ts)
-      _ -> :ok
-    end)
+  def handle_info(:poll, state) do
+    case active?() do
+      true ->
+        now = :os.system_time(:millisecond)
 
-    {:noreply, state}
-  end
+        execute =
+          Riptide.Scheduler.stream()
+          |> Stream.filter(fn {task, _info} -> Dynamic.get(state, [:active, task]) == nil end)
+          |> Stream.filter(fn {_task, info} -> info["timestamp"] <= now end)
+          |> Stream.map(fn {task, _info} -> task end)
+          |> Enum.to_list()
 
-  def handle_info({:trigger, key}, state) do
-    Task.start_link(fn -> execute(key) end)
-    {:noreply, state}
-  end
-
-  def info(task), do: Riptide.query_path!([@root, task])
-
-  def cancel(task) do
-    Riptide.Mutation.delete([@root, task])
-  end
-
-  def schedule_in(mod, fun, args, offset, key \\ nil),
-    do: schedule(:os.system_time(:millisecond) + offset, mod, fun, args, key)
-
-  def schedule(timestamp, mod, fun, args, key \\ nil) do
-    key = key || "SCH" <> Riptide.UUID.ascending()
-
-    Riptide.Mutation.merge([@root, key], %{
-      "key" => key,
-      "timestamp" => timestamp,
-      "mod" => mod,
-      "fun" => fun,
-      "args" => args,
-      "count" => 0
-    })
-  end
-
-  def execute(task) do
-    task
-    |> info()
-    |> case do
-      info = %{
-        "mod" => mod,
-        "args" => args,
-        "fun" => fun,
-        "timestamp" => timestamp
-      } ->
-        Logger.metadata(scheduler_mod: mod, scheduler_fun: fun)
-        mod = String.to_atom(mod)
-        fun = String.to_atom(fun)
-
-        try do
-          apply(mod, fun, args)
-
-          cond do
-            timestamp === Riptide.query_path!([@root, task, "timestamp"]) ->
-              Riptide.delete!([@root, task])
-
-            true ->
-              Riptide.merge!([@root, task, "count"], 0)
+        Enum.each(execute, fn task ->
+          nodes()
+          |> Enum.random()
+          |> case do
+            node ->
+              Task.Supervisor.async_nolink(
+                {Riptide.Scheduler, node},
+                __MODULE__,
+                :execute,
+                [task]
+              )
           end
+        end)
 
-          {:stop, :normal, task}
-        rescue
-          e ->
-            :error
-            |> Exception.format(e, __STACKTRACE__)
-            |> Logger.error(crash_reason: {e, __STACKTRACE__})
+        {:noreply,
+         %{
+           state
+           | active:
+               execute
+               |> Stream.map(fn task -> {task, true} end)
+               |> Enum.into(state.active)
+         }}
 
-            count = (info["count"] || 0) + 1
-            Riptide.merge!([@root, task, "count"], count)
-
-            Riptide.Retry.Basic
-            |> apply(:retry, [task, count])
-            |> case do
-              {:delay, amount} ->
-                Process.send_after(__MODULE__, {:trigger, task}, amount)
-
-              :abort ->
-                Riptide.delete!([@root, task])
-            end
-        end
-
-      _ ->
-        :ok
+      false ->
+        {:noreply, state}
     end
   end
 
-  def schedule(key, timestamp) do
-    offset = max(0, timestamp - :os.system_time(:millisecond))
-    Process.send_after(__MODULE__, {:trigger, key}, offset)
+  def handle_info({_ref, {:finish, task, _result}}, state) do
+    {:noreply, %{state | active: Map.delete(state.active, task)}}
+  end
+
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
+  def execute(task) do
+    {:finish, task, Riptide.Scheduler.execute(task)}
+  end
+
+  def nodes() do
+    [Node.self() | Node.list()]
+    |> Enum.sort()
+  end
+
+  def active?() do
+    Enum.at(nodes(), 0) == Node.self()
   end
 end

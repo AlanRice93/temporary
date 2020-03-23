@@ -9,23 +9,18 @@ defmodule Riptide.Subscribe do
         :ok
 
       true ->
-        group
-        |> :pg2.join(pid)
-        |> case do
-          {:error, {:no_such_group, _}} ->
-            :pg2.create(group)
-            watch(path, pid)
-
-          :ok ->
-            :ok
-        end
+        :pg2.join(group, pid)
     end
   end
 
   def member?(group, pid) do
     case :pg2.get_members(group) do
-      {:error, _} -> false
-      result -> pid in result
+      {:error, {:no_such_group, _}} ->
+        :pg2.create(group)
+        false
+
+      result ->
+        pid in result
     end
   end
 
@@ -36,7 +31,7 @@ defmodule Riptide.Subscribe do
       inflated = Riptide.Mutation.inflate(path, value)
 
       path
-      |> group
+      |> group()
       |> :pg2.get_members()
       |> case do
         {:error, _} ->

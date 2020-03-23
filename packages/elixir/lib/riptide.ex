@@ -1,18 +1,22 @@
 defmodule Riptide do
   @internal %{internal: true}
 
-  def init() do
-    [
-      Riptide.Config.riptide_store_read(),
-      Riptide.Config.riptide_store_write()
-    ]
-    |> Enum.uniq()
-    |> Enum.map(fn
-      {store, opts} -> :ok = store.init(opts)
-      _ -> :ok
-    end)
+  use Supervisor
 
-    :ok
+  def start_link(opts \\ %{}) do
+    Supervisor.start_link(__MODULE__, opts, name: __MODULE__)
+  end
+
+  def init(opts) do
+    Riptide.Store.init()
+
+    Supervisor.init(
+      [
+        {Riptide.Scheduler, []},
+        {Riptide.Websocket.Server, opts}
+      ],
+      strategy: :one_for_one
+    )
   end
 
   def query(query, state \\ @internal) do
@@ -41,6 +45,18 @@ defmodule Riptide do
     case query(Dynamic.put(%{}, path, opts), state) do
       {:ok, result} -> {:ok, Dynamic.get(result, path)}
       result -> result
+    end
+  end
+
+  def mutation!(mut) do
+    case mutation(mut) do
+      {:ok, result} -> result
+    end
+  end
+
+  def mutation!(mut, state) do
+    case mutation(mut, state) do
+      {:ok, result} -> result
     end
   end
 

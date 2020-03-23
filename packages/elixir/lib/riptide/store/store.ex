@@ -3,6 +3,20 @@ defmodule Riptide.Store do
   @callback mutation(merges :: any, deletes :: any(), opts :: any()) :: :ok | {:error, atom()}
   @callback query(paths :: any, opts :: any()) :: any
 
+  def init() do
+    [
+      Riptide.Config.riptide_store_read(),
+      Riptide.Config.riptide_store_write()
+    ]
+    |> Enum.uniq()
+    |> Enum.map(fn
+      {store, opts} -> :ok = store.init(opts)
+      _ -> :ok
+    end)
+
+    :ok
+  end
+
   def mutation(mut) do
     case Riptide.Config.riptide_store_write() do
       {store, opts} ->
