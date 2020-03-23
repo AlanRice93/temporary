@@ -8,6 +8,7 @@ defmodule Riptide do
   end
 
   def init(opts) do
+    opts = Enum.into(opts, %{})
     Riptide.Store.init()
 
     Supervisor.init(
