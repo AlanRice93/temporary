@@ -12,7 +12,7 @@ defmodule Riptide.Scheduler.Dispatch do
   end
 
   def handle_info(:poll, state) do
-    case active?() do
+    case active?() and Riptide.Config.riptide_scheduler() do
       true ->
         now = :os.system_time(:millisecond)
 

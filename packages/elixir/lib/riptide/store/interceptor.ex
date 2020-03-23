@@ -72,7 +72,14 @@ defmodule Riptide.Interceptor do
 
     (interceptors ++ [Riptide.Scheduler.Interceptor])
     |> Stream.flat_map(fn mod ->
-      Stream.map(layers, fn {path, data} -> {mod, apply(mod, fun, [path, data | args])} end)
+      Stream.map(layers, fn {path, data} ->
+        result = apply(mod, fun, [path, data | args])
+
+        if logging?() and result != nil,
+          do: Logger.info("#{mod} #{fun} #{inspect(path)} -> #{inspect(result)}")
+
+        {mod, result}
+      end)
     end)
   end
 
