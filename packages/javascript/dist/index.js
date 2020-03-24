@@ -116,7 +116,7 @@ class Local {
         this.syncs.push(target);
     }
     query_path(path, opts = {}) {
-        return Dynamic.get(this.query(Dynamic.put({}, path, opts)), path);
+        return Dynamic.get(this.query(path.length === 0 ? {} : Dynamic.put({}, path, opts)), path);
     }
     query_values(path, opts = {}) {
         return Object.values(this.query_path(path, opts) || {});

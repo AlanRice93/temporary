@@ -24,12 +24,12 @@ export default class Remote<T extends Riptide.Transport, F extends Riptide.Forma
         return result.merge
     }
 
-    public async query_path(path: string[], opts: Riptide.Query.Opts = {}) {
-        return Dynamic.get(await this.query(Dynamic.put({}, path, opts) as Riptide.Query), path)
+    public async query_path<T>(path: string[], opts: Riptide.Query.Opts = {}) {
+        return Dynamic.get<T>(await this.query(Dynamic.put({}, path, opts) as Riptide.Query), path)
     }
 
-    public async query_values(path: string[], opts: Riptide.Query.Opts = {}) {
-        return Object.values(await this.query_path(path, opts) || {})
+    public async query_values<T>(path: string[], opts: Riptide.Query.Opts = {}) {
+        return Object.values<T>(await this.query_path<{ [key: string]: T }>(path, opts) || {})
     }
 
     public async query_keys(path: string[], opts: Riptide.Query.Opts = {}) {

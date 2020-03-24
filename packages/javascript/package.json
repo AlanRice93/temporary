@@ -3,8 +3,6 @@
   "version": "0.0.1",
   "description": "",
   "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "browser": "dist/index.bundle.js",
   "scripts": {
     "build": "rollup -c",
     "test": "tsdx test"

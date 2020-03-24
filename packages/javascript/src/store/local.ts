@@ -36,12 +36,17 @@ export default abstract class Local {
         this.syncs.push(target)
     }
 
-    public query_path(path: string[], opts: Riptide.Query.Opts = {}) {
-        return Dynamic.get(this.query(Dynamic.put({}, path, opts) as Riptide.Query), path)
+    public query_path<T>(path: string[], opts: Riptide.Query.Opts = {}) {
+        return Dynamic.get<T>(
+            this.query(
+                path.length === 0 ? {} : Dynamic.put({}, path, opts) as Riptide.Query
+            ),
+            path
+        )
     }
 
-    public query_values(path: string[], opts: Riptide.Query.Opts = {}) {
-        return Object.values(this.query_path(path, opts) || {})
+    public query_values<T>(path: string[], opts: Riptide.Query.Opts = {}) {
+        return Object.values<T>(this.query_path<{ [key: string]: T }>(path, opts) || {})
     }
 
     public query_keys(path: string[], opts: Riptide.Query.Opts = {}) {
