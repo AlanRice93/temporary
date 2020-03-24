@@ -27,8 +27,12 @@ interface Creature {
 }
 
 function App() {
+    // Tell React to rerender the application when there's a change to the state of the local or session store
     const [_, render] = React.useState(0)
-    React.useEffect(() => Riptide.local.onChange.add(() => render(val => val + 1)), [])
+    React.useEffect(() => {
+        Riptide.local.onChange.add(() => render(val => val + 1))
+        Riptide.session.onChange.add(() => render(val => val + 1))
+    }, [])
     return (
         <div >
             {
