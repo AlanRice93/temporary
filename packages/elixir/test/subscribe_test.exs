@@ -3,8 +3,9 @@ defmodule Riptide.Test.Subscribe do
 
   test "implementation" do
     Riptide.Subscribe.watch([])
+    {creature, creature_info} = Riptide.Test.Data.hammerhead()
 
-    mut = Riptide.Mutation.merge(["animals", "shark"], "hammerhead")
+    mut = Riptide.Mutation.merge(["creatures", creature], creature_info)
     Riptide.Subscribe.broadcast_mutation(mut)
 
     {:mutation, ^mut} =

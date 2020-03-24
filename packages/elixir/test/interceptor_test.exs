@@ -2,16 +2,17 @@ defmodule Riptide.Test.Interceptor do
   defmodule Example do
     use Riptide.Interceptor
 
-    def mutation_before(["animals"], %{merge: %{"shark" => shark}}, _mut, _state) do
-      {:combine, Riptide.Mutation.merge(["ocean", shark], true)}
+    def mutation_before(["creatures", key], %{merge: %{"key" => _}}, _mut, _state) do
+      {:combine,
+       Riptide.Mutation.merge(["creatures", key, "created"], :os.system_time(:millisecond))}
     end
 
-    def mutation_after(["animals"], %{merge: %{"shark" => shark}}, _mut, _state) do
+    def mutation_after(["creatures", key], %{merge: %{"key" => _}}, _mut, _state) do
       Process.put(:after, true)
       :ok
     end
 
-    def mutation_effect(["animals"], %{merge: %{"shark" => shark}}, _mut, _state),
+    def mutation_effect(["creatures", key], %{merge: %{"key" => _}}, _mut, _state),
       do: {:trigger, []}
 
     def trigger() do
@@ -22,46 +23,50 @@ defmodule Riptide.Test.Interceptor do
     end
 
     def query_resolve(["resolved" | path], _opts, _state) do
-      %{
-        "turtle" => "snapping"
-      }
-      |> Dynamic.get(path)
+      {_, creature} = Riptide.Test.Data.gw()
+      Dynamic.get(creature, path)
     end
   end
 
   use ExUnit.Case
 
   test "mutation_before" do
-    Riptide.Interceptor.logging_enable()
+    {key, creature} = Riptide.Test.Data.hammerhead()
 
     {
       :ok,
       %{
         merge: %{
-          "ocean" => %{"hammerhead" => true}
+          "creatures" => %{
+            ^key => %{
+              "created" => _
+            }
+          }
         }
       }
     } =
       Riptide.Interceptor.mutation_before(
-        Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
+        Riptide.Mutation.merge(["creatures", key], creature),
         %{},
         [Example]
       )
   end
 
   test "mutation_after" do
-    Riptide.Interceptor.logging_enable()
+    {key, creature} = Riptide.Test.Data.hammerhead()
 
     :ok =
       Riptide.Interceptor.mutation_after(
-        Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
+        Riptide.Mutation.merge(["creatures", key], creature),
         %{},
         [Example]
       )
+
+    Process.get(:after) == true
   end
 
   test "mutation_effect" do
-    Riptide.Interceptor.logging_enable()
+    {key, creature} = Riptide.Test.Data.hammerhead()
 
     %{
       merge: %{
@@ -69,14 +74,16 @@ defmodule Riptide.Test.Interceptor do
       }
     } =
       Riptide.Interceptor.mutation_effect(
-        Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
+        Riptide.Mutation.merge(["creatures", key], creature),
         %{},
         [Example]
       )
   end
 
   test "query_resolve" do
-    %{"turtle" => "snapping"} =
+    {_key, creature} = Riptide.Test.Data.gw()
+
+    ^creature =
       Riptide.Interceptor.query_resolve(
         %{
           "resolved" => %{}
