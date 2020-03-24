@@ -15,6 +15,7 @@
 defmodule Ocean.Creature.Created do
   use Riptide.Interceptor
 
+  # Appends a `created` timestamp when the creature is first created
   def mutation_before(["creatures", key], %{merge: %{"key" => _}}, _mut, _state) do
     {
       :combine,
@@ -27,6 +28,8 @@ defmodule Ocean.Creature.Alert do
   use Riptide.Interceptor
   require Logger
 
+  # `mutation_effect` schedules a function to be triggered after the mutation has been successfully
+  # written. It's useful for triggering side effects, like sending an SMS or email
   def mutation_effect(
         ["creatures", key],
         %{merge: %{"key" => key, "name" => name}},
