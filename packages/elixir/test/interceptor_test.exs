@@ -62,7 +62,7 @@ defmodule Riptide.Test.Interceptor do
         [Example]
       )
 
-    Process.get(:after) == true
+    true = Process.get(:after)
   end
 
   test "mutation_effect" do
