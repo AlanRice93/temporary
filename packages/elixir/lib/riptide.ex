@@ -65,6 +65,7 @@ defmodule Riptide do
 
   def mutation(mut, state) do
     with {:ok, prepared} <- Riptide.Interceptor.mutation_before(mut, state),
+         prepared <- Riptide.Interceptor.mutation_effect(prepared, state),
          :ok <- Riptide.Subscribe.broadcast_mutation(prepared),
          :ok <- Riptide.Store.mutation(prepared),
          :ok <- Riptide.Interceptor.mutation_after(prepared, state) do

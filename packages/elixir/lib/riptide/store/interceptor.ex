@@ -18,6 +18,23 @@ defmodule Riptide.Interceptor do
     end
   end
 
+  def mutation_effect(mutation, state),
+    do: mutation_effect(mutation, state, Riptide.Config.riptide_interceptors())
+
+  def mutation_effect(mutation, state, interceptors) do
+    mutation
+    |> mutation_trigger(interceptors, :mutation_effect, [mutation, state])
+    |> Stream.map(fn {mod, result} ->
+      case result do
+        {fun, args} -> Riptide.Scheduler.schedule_in(mod, fun, args, 0)
+        {mod_other, fun, args} -> Riptide.Scheduler.schedule(mod_other, fun, args, 0)
+        _ -> Riptide.Mutation.new()
+      end
+    end)
+    |> Riptide.Mutation.combine()
+    |> Riptide.Mutation.combine(mutation)
+  end
+
   def mutation_before(mutation, state),
     do: mutation_before(mutation, state, Riptide.Config.riptide_interceptors())
 

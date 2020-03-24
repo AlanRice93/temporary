@@ -11,6 +11,12 @@ defmodule Riptide.Test.Interceptor do
       :ok
     end
 
+    def mutation_effect(["animals"], %{merge: %{"shark" => shark}}, _mut, _state),
+      do: {:trigger, []}
+
+    def trigger() do
+    end
+
     def query_before(["denied" | _rest], _opts, _state) do
       {:error, :denied}
     end
@@ -48,6 +54,21 @@ defmodule Riptide.Test.Interceptor do
 
     :ok =
       Riptide.Interceptor.mutation_after(
+        Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
+        %{},
+        [Example]
+      )
+  end
+
+  test "mutation_effect" do
+    Riptide.Interceptor.logging_enable()
+
+    %{
+      merge: %{
+        "riptide:scheduler" => %{}
+      }
+    } =
+      Riptide.Interceptor.mutation_effect(
         Riptide.Mutation.merge(["animals", "shark"], "hammerhead"),
         %{},
         [Example]

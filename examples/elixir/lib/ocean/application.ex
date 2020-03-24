@@ -9,7 +9,7 @@ defmodule Ocean.Application do
     children = [
       # Starts a worker by calling: Ocean.Worker.start_link(arg)
       # {Ocean.Worker, arg}
-      {Riptide, port: 12001}
+      {Riptide, []}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
