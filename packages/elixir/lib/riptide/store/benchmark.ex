@@ -1,4 +1,5 @@
 defmodule Riptide.Store.Benchmark do
+  @moduledoc false
   require Logger
 
   def run(store, opts) do
@@ -17,7 +18,7 @@ defmodule Riptide.Store.Benchmark do
       |> Enum.each(fn mut -> Riptide.Store.mutation(mut, store, opts) end)
     end)
 
-    read_count = 10000
+    read_count = 10_000
 
     time("Read #{read_count} consecutive values", fn ->
       Riptide.Store.query(

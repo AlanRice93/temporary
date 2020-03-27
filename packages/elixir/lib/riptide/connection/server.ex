@@ -1,4 +1,5 @@
 defmodule Riptide.Websocket.Server do
+  @moduledoc false
   @behaviour :cowboy_websocket
 
   def init(req, state) do
@@ -38,7 +39,7 @@ defmodule Riptide.Websocket.Server do
     opts =
       Map.merge(
         %{
-          port: 12000,
+          port: 12_000,
           format: Riptide.Format.JSON
         },
         opts

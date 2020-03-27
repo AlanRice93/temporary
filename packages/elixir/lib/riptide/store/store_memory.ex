@@ -1,4 +1,5 @@
 defmodule Riptide.Store.Memory do
+  @moduledoc false
   @behaviour Riptide.Store
   @table :riptide_table
 

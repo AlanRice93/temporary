@@ -1,4 +1,5 @@
 defmodule Riptide.Interceptor do
+  @moduledoc false
   require Logger
 
   def query_before(query, state),

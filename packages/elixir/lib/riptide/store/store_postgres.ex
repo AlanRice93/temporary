@@ -1,4 +1,5 @@
 defmodule Riptide.Store.Postgres do
+  @moduledoc false
   @behaviour Riptide.Store
   @delimiter "×"
   def init(opts) do
@@ -40,7 +41,7 @@ defmodule Riptide.Store.Postgres do
 
   def merge(merges, conn, opts) do
     merges
-    |> Stream.chunk_every(30000)
+    |> Stream.chunk_every(30_000)
     |> Enum.map(fn layers ->
       {_, statement, params} =
         layers
