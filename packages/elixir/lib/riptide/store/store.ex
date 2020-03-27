@@ -13,8 +13,6 @@ defmodule Riptide.Store do
       {store, opts} -> :ok = store.init(opts)
       _ -> :ok
     end)
-
-    :ok
   end
 
   def mutation(mut) do
@@ -39,7 +37,7 @@ defmodule Riptide.Store do
   end
 
   def query(query, store, store_opts) do
-    paths = Riptide.Query.flatten(query) |> Enum.to_list()
+    paths = query |> Riptide.Query.flatten() |> Enum.to_list()
 
     paths
     |> store.query(store_opts)

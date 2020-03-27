@@ -3,8 +3,8 @@ defmodule Riptide.Mutation do
   @type t :: %{merge: map, delete: map}
 
   @typedoc "A key-value pair representing a layer of the mutation. The key
-	is a list of strings representing the path to the current layer. The value is a
-	mutation, representing any deeper sub-mutations."
+  is a list of strings representing the path to the current layer. The value is a
+  mutation, representing any deeper sub-mutations."
   @type layer :: {list(String.t()), t}
 
   @doc ~S"""
@@ -12,8 +12,8 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.new
-  	%{delete: %{}, merge: %{}}
+    iex> Riptide.Mutation.new
+    %{delete: %{}, merge: %{}}
 
   """
   @spec new(map, map) :: t
@@ -33,9 +33,9 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> mutation = %{delete: %{}, merge: %{"a" => %{"b" => 1}}}
-  	iex> Riptide.Mutation.merge(mutation, ["a","c"], 2)
-  	%{delete: %{}, merge: %{"a" => %{"b" => 1, "c" => 2}}}
+    iex> mutation = %{delete: %{}, merge: %{"a" => %{"b" => 1}}}
+    iex> Riptide.Mutation.merge(mutation, ["a","c"], 2)
+    %{delete: %{}, merge: %{"a" => %{"b" => 1, "c" => 2}}}
 
   """
   @spec merge(t, list(String.t()), any) :: t
@@ -51,20 +51,20 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.delete(
-  	...>	%{
-  	...>		delete: %{},
-  	...>		merge: %{
-  	...>			"a" => %{
-  	...>				"b" => %{
-  	...>					"c" => true
-  	...>				}
-  	...>			}
-  	...>		}
-  	...>	},
-  	...>	["c"]
-  	...> )
-  	%{delete: %{"c" => 1}, merge: %{"a" => %{"b" => %{"c" => true}}}}
+    iex> Riptide.Mutation.delete(
+    ...>	%{
+    ...>		delete: %{},
+    ...>		merge: %{
+    ...>			"a" => %{
+    ...>				"b" => %{
+    ...>					"c" => true
+    ...>				}
+    ...>			}
+    ...>		}
+    ...>	},
+    ...>	["c"]
+    ...> )
+    %{delete: %{"c" => 1}, merge: %{"a" => %{"b" => %{"c" => true}}}}
   """
   @spec delete(t, list(String.t())) :: t
   def delete(input, path), do: Dynamic.put(input, [:delete | path], 1)
@@ -76,23 +76,23 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> %{delete: %{}, merge: %{"a" => %{"b" => true}}} |> Riptide.Mutation.layers
-  	%{
-  		[] => %{
-  			delete: %{},
-  			merge: %{
-  				"a" => %{
-  					"b" => true
-  				}
-  			}
-  		},
-  		["a"] => %{
-  			delete: %{},
-  			merge: %{
-  				"b" => true
-  			}
-  		}
-  	}
+    iex> %{delete: %{}, merge: %{"a" => %{"b" => true}}} |> Riptide.Mutation.layers
+    %{
+      [] => %{
+        delete: %{},
+        merge: %{
+          "a" => %{
+            "b" => true
+          }
+        }
+      },
+      ["a"] => %{
+        delete: %{},
+        merge: %{
+          "b" => true
+        }
+      }
+    }
   """
   @spec layers(t) :: %{required(list(String.t())) => layer}
   def layers(%{merge: merge, delete: delete}) do
@@ -127,11 +127,11 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.combine(
-  	...>	%{delete: %{}, merge: %{"a" => true}},
-  	...>	%{delete: %{}, merge: %{"b" => false}}
-  	...> )
-  	%{delete: %{}, merge: %{"a" => true, "b" => false}}
+    iex> Riptide.Mutation.combine(
+    ...>	%{delete: %{}, merge: %{"a" => true}},
+    ...>	%{delete: %{}, merge: %{"b" => false}}
+    ...> )
+    %{delete: %{}, merge: %{"a" => true, "b" => false}}
   """
   @spec combine(t, t) :: t
   def combine(left, right) do
@@ -160,11 +160,11 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.apply(
-  	...> 	%{"b" => false},
-  	...> 	%{delete: %{}, merge: %{"a" => true}}
-  	...> )
-  	%{"a" => true, "b" => false}
+    iex> Riptide.Mutation.apply(
+    ...> 	%{"b" => false},
+    ...> 	%{delete: %{}, merge: %{"a" => true}}
+    ...> )
+    %{"a" => true, "b" => false}
   """
   @spec apply(map, t) :: map
   def apply(input, mutation) do
@@ -188,29 +188,29 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.inflate(
-  	...>	["a", "b"],
-  	...>	%{
-  	...>		delete: %{},
-  	...>		merge: %{
-  	...>			"a" => 1
-  	...>		}
-  	...>	}
-  	...>)
-  	%{
-  		delete: %{
-  			"a" => %{
-  				"b" => %{}
-  			}
-  		},
-  		merge: %{
-  			"a" => %{
-  				"b" => %{
-  					"a" => 1
-  				}
-  			}
-  		}
-  	}
+    iex> Riptide.Mutation.inflate(
+    ...>	["a", "b"],
+    ...>	%{
+    ...>		delete: %{},
+    ...>		merge: %{
+    ...>			"a" => 1
+    ...>		}
+    ...>	}
+    ...>)
+    %{
+      delete: %{
+        "a" => %{
+          "b" => %{}
+        }
+      },
+      merge: %{
+        "a" => %{
+          "b" => %{
+            "a" => 1
+          }
+        }
+      }
+    }
   """
   @spec inflate(list(String.t()), t) :: t
   def inflate(path, mut) do
@@ -225,11 +225,11 @@ defmodule Riptide.Mutation do
 
   ## Example
 
-  	iex> Riptide.Mutation.from_diff(
-  	...>	%{"a" => 1},
-  	...>	%{"b" => 2}
-  	...>)
-  	%{delete: %{"a" => 1}, merge: %{"b" => 2}}
+    iex> Riptide.Mutation.from_diff(
+    ...>	%{"a" => 1},
+    ...>	%{"b" => 2}
+    ...>)
+    %{delete: %{"a" => 1}, merge: %{"b" => 2}}
   """
   def from_diff(old, new) do
     old

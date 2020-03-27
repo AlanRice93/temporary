@@ -42,11 +42,20 @@ defmodule Riptide.Test.Store do
     %{"creatures" => %{^hh_key => ^hh}} =
       Riptide.Store.query(%{"creatures" => %{hh_key => %{}}}, store, opts)
 
-    2 = Riptide.Store.stream(["creatures"], %{}, store, opts) |> Enum.count()
-    1 = Riptide.Store.stream(["creatures"], %{limit: 1}, store, opts) |> Enum.count()
+    2 =
+      ["creatures"]
+      |> Riptide.Store.stream(%{}, store, opts)
+      |> Enum.count()
+
+    1 =
+      ["creatures"]
+      |> Riptide.Store.stream(%{limit: 1}, store, opts)
+      |> Enum.count()
 
     [{^gw_key, ^gw}] =
-      Riptide.Store.stream(["creatures"], %{min: "002"}, store, opts) |> Enum.to_list()
+      ["creatures"]
+      |> Riptide.Store.stream(%{min: "002"}, store, opts)
+      |> Enum.to_list()
 
     Riptide.Store.mutation(Riptide.Mutation.delete(["creatures", gw_key]), store, opts)
 

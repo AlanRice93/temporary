@@ -22,8 +22,9 @@ defmodule Riptide.Store.Postgres do
   def opts_transaction_timeout(opts), do: Map.get(opts, :transaction_timeout, :timer.minutes(10))
 
   def mutation(merges, deletes, opts) do
-    Postgrex.transaction(
-      opts_name(opts),
+    opts
+    |> opts_name()
+    |> Postgrex.transaction(
       fn conn ->
         delete(deletes, conn, opts)
         merge(merges, conn, opts)
@@ -40,7 +41,7 @@ defmodule Riptide.Store.Postgres do
 
   def merge(merges, conn, opts) do
     merges
-    |> Stream.chunk_every(30000)
+    |> Stream.chunk_every(30_000)
     |> Enum.map(fn layers ->
       {_, statement, params} =
         layers
@@ -145,8 +146,8 @@ defmodule Riptide.Store.Postgres do
     SELECT ranges.prefix, path, value FROM riptide JOIN ranges ON riptide.path >= ranges.min AND riptide.path < ranges.max
     """
 
-    Postgrex.stream(
-      conn,
+    conn
+    |> Postgrex.stream(
       statement,
       args,
       max_rows: 1000
@@ -167,8 +168,8 @@ defmodule Riptide.Store.Postgres do
     combined = encode_prefix(path)
     {min, max} = Riptide.Store.Prefix.range(combined, opts)
 
-    Postgrex.stream(
-      conn,
+    conn
+    |> Postgrex.stream(
       "SELECT path, value FROM riptide WHERE path >= $1 AND path < $2",
       [encode_path(min), encode_path(max)]
     )
